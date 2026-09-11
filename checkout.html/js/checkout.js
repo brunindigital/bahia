@@ -116,23 +116,8 @@
   }
   var orderId = getOrderId();
 
-  /* ---------- Inicio de checkout (xTracky) ---------- */
+  /* ---------- Inicio de checkout (Google Ads) ---------- */
   (function notifyCheckoutStarted() {
-    if (isNaN(productPrice) || productPrice <= 0) return;
-    var attribution = window.getAttribution ? window.getAttribution() : {};
-    fetch("/api/checkout/initiate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderId: orderId,
-        price: productPrice,
-        source: attribution.source,
-        medium: attribution.medium,
-        campaign: attribution.campaign,
-      }),
-      keepalive: true,
-    }).catch(function () { /* rastreamento nunca bloqueia o checkout */ });
-
     if (typeof gtag === "function") {
       gtag("event", "conversion", {
         send_to: "AW-18375685275/vxGrCIak7-gcEJvpmrpE",
@@ -360,6 +345,28 @@
     });
   }
 
+  function reportGeneratedOnce(order) {
+    if (!order || !order.orderId) return;
+    var flag = "arremata_utmify_generated_" + order.orderId;
+    try {
+      if (localStorage.getItem(flag) === "1") return;
+      localStorage.setItem(flag, "pending");
+    } catch (e) { /* modo privado */ }
+    fetch("/api/checkout/initiate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(order),
+      keepalive: true
+    }).then(function (res) {
+      try {
+        if (res && res.ok) localStorage.setItem(flag, "1");
+        else localStorage.removeItem(flag);
+      } catch (e) { /* modo privado */ }
+    }).catch(function () {
+      try { localStorage.removeItem(flag); } catch (e) { /* modo privado */ }
+    });
+  }
+
   function pollStatus(transactionId, route, slug, amount) {
     stopPolling();
     var query = new URLSearchParams({ route: route || "" });
@@ -481,8 +488,7 @@
             slugMatch ? slugMatch[1] : ""
           );
 
-          try {
-            localStorage.setItem("arremata_order", JSON.stringify({
+          var generatedOrder = {
               orderId: orderId,
               price: isNaN(productPrice) ? 0 : productPrice,
               title: productTitle,
@@ -495,8 +501,11 @@
               txId: String(result.data.txid || ""),
               route: String(result.data.route || ""),
               tracking: getTracking()
-            }));
+          };
+          try {
+            localStorage.setItem("arremata_order", JSON.stringify(generatedOrder));
           } catch (e) { /* modo privado */ }
+          reportGeneratedOnce(generatedOrder);
 
           showPixStage(pixStageReady);
           pixPending = true;
