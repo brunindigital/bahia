@@ -19,6 +19,7 @@ src="https://www.facebook.com/tr?id=811928608668584&ev=PageView&noscript=1"
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<base href="/index.html/">
 <title>Arremata+ | Leilões online em todo o Brasil</title>
 <meta name="description" content="Encontre leilões de eletrônicos, móveis, veículos e mais. Dê seu lance com segurança e acompanhe em tempo real.">
 <meta property="og:title" content="Arremata+ | Leilões online em todo o Brasil">
@@ -751,9 +752,8 @@ src="https://www.facebook.com/tr?id=811928608668584&ev=PageView&noscript=1"
 <script>
   document.querySelectorAll('a[href*="product-"]').forEach(function (link) {
     var href = link.getAttribute("href");
-    if (href.indexOf("../") !== 0) href = "../" + href;
-    if (!/\/index\.html(?:[?#]|$)/.test(href)) href += "/index.html";
-    link.setAttribute("href", href);
+    var match = href.match(/(product-[a-z0-9-]+\.html)/i);
+    if (match) link.setAttribute("href", "/" + match[1] + "/index.html");
   });
 </script>
 
