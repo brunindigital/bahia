@@ -73,6 +73,12 @@
   var productImg = params.get("img") || "";
   var productSlugParam = params.get("slug") || "";
 
+  // As páginas de produto enviam imagens relativas à própria pasta. Como o
+  // checkout fica em outra pasta, reconstruímos o caminho público do produto.
+  if (productImg && !/^(?:https?:|data:|\/)/i.test(productImg) && productSlugParam) {
+    productImg = "../product-" + productSlugParam + ".html/" + productImg.replace(/^\.\//, "");
+  }
+
   // SMOKE TEST: com ?smoketest=1 na URL, a cobrança vira R$ 5,00 (em vez do valor
   // arrematado). Serve para testar o fluxo de pagamento real de ponta a ponta —
   // Pix gerado, pago e redirecionamento pro upsell — gastando só R$ 5.
