@@ -488,8 +488,9 @@
             slugMatch ? slugMatch[1] : ""
           );
 
-          var generatedOrder = {
-              orderId: orderId,
+            var allowpayTxid = String(result.data.txid || "");
+            var generatedOrder = {
+              orderId: allowpayTxid || orderId,
               price: isNaN(productPrice) ? 0 : productPrice,
               title: productTitle,
               slug: slugMatch ? slugMatch[1] : "",
@@ -498,7 +499,7 @@
               phone: buyer.phone,
               cpf: buyer.cpf,
               createdAt: new Date().toISOString().slice(0, 19).replace("T", " "),
-              txId: String(result.data.txid || ""),
+              txId: allowpayTxid,
               route: String(result.data.route || ""),
               tracking: getTracking()
           };
